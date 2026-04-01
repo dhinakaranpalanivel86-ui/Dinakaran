@@ -1,0 +1,260 @@
+# <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Music Player Pro</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #141e30, #243b55);
+  color: white;
+}
+
+/* HEADER */
+header {
+  text-align: center;
+  padding: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* CONTAINER */
+.container {
+  padding: 20px;
+}
+
+/* CONTROLS */
+.controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+input, select {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  backdrop-filter: blur(5px);
+}
+
+input::placeholder {
+  color: #ccc;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* CARD */
+.card {
+  background: rgba(255,255,255,0.08);
+  padding: 15px;
+  border-radius: 15px;
+  transition: 0.3s;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.03);
+}
+
+/* SONG TITLE */
+.card h4 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+/* BUTTON */
+button {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(45deg, #1db954, #1ed760);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.1);
+}
+
+/* FAVORITE ICON */
+.favorite {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* NOW PLAYING */
+.now-playing {
+  margin-top: 25px;
+  padding: 20px;
+  border-radius: 15px;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(10px);
+}
+
+/* RECENT */
+.recent {
+  margin-top: 20px;
+}
+
+.recent h3 {
+  margin-bottom: 10px;
+}
+
+.recent ul {
+  list-style: none;
+}
+
+.recent li {
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<header>🎧 Music Player Pro</header>
+
+<div class="container">
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search song...">
+
+    <select id="genreFilter">
+      <option value="">All Genres</option>
+      <option value="Pop">Pop</option>
+      <option value="Melody">Melody</option>
+      <option value="Rock">Rock</option>
+    </select>
+
+    <select id="artistFilter">
+      <option value="">All Artists</option>
+      <option value="Anirudh">Anirudh</option>
+      <option value="AR Rahman">AR Rahman</option>
+    </select>
+  </div>
+
+  <div class="grid" id="songList"></div>
+
+  <div class="now-playing" id="nowPlaying">
+    <h3>Now Playing: None</h3>
+  </div>
+
+  <div class="recent">
+    <h3>Recently Played</h3>
+    <ul id="recentList"></ul>
+  </div>
+
+</div>
+
+<script>
+const songs = [
+  {id:1,title:"Arabic Kuthu",artist:"Anirudh",genre:"Pop",favorite:false},
+  {id:2,title:"Munbe Vaa",artist:"AR Rahman",genre:"Melody",favorite:false},
+  {id:3,title:"Vaathi Coming",artist:"Anirudh",genre:"Rock",favorite:false},
+  {id:4,title:"Nenjukulle",artist:"AR Rahman",genre:"Melody",favorite:false}
+];
+
+let recentlyPlayed = [];
+
+/* DISPLAY SONGS */
+function displaySongs(data) {
+  const container = document.getElementById("songList");
+  container.innerHTML = "";
+
+  data.forEach(song => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="favorite" onclick="toggleFavorite(${song.id})">
+        ${song.favorite ? "❤️" : "🤍"}
+      </div>
+      <h4>${song.title}</h4>
+      <p>${song.artist}</p>
+      <p>${song.genre}</p>
+      <button onclick="playSong(${song.id})">▶ Play</button>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+/* PLAY SONG */
+function playSong(id) {
+  const song = songs.find(s => s.id === id);
+  document.getElementById("nowPlaying").innerHTML =
+    `<h3>🎵 Now Playing: ${song.title} - ${song.artist}</h3>`;
+
+  recentlyPlayed.unshift(song.title);
+  recentlyPlayed = recentlyPlayed.slice(0, 5);
+
+  updateRecent();
+}
+
+/* RECENT LIST */
+function updateRecent() {
+  const list = document.getElementById("recentList");
+  list.innerHTML = "";
+
+  recentlyPlayed.forEach(song => {
+    const li = document.createElement("li");
+    li.textContent = song;
+    list.appendChild(li);
+  });
+}
+
+/* FAVORITE */
+function toggleFavorite(id) {
+  const song = songs.find(s => s.id === id);
+  song.favorite = !song.favorite;
+  displaySongs(songs);
+}
+
+/* FILTERS */
+document.getElementById("search").addEventListener("input", function() {
+  const value = this.value.toLowerCase();
+  displaySongs(songs.filter(s => s.title.toLowerCase().includes(value)));
+});
+
+document.getElementById("genreFilter").addEventListener("change", function() {
+  const genre = this.value;
+  displaySongs(genre ? songs.filter(s => s.genre === genre) : songs);
+});
+
+document.getElementById("artistFilter").addEventListener("change", function() {
+  const artist = this.value;
+  displaySongs(artist ? songs.filter(s => s.artist === artist) : songs);
+});
+
+/* INIT */
+displaySongs(songs);
+</script>
+
+</body>
+</html>
